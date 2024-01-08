@@ -1,0 +1,11 @@
+groups:
+  - name: cortex-critical
+    rules:
+      - alert: PrometheusDown
+        expr: sum(up{instance=~"prometheus.*"}) < 1
+        for: 15s
+        labels:
+          severity: critical
+        annotations:
+          summary: Prometheus is down alert
+          description: "Prometheus is down \n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"

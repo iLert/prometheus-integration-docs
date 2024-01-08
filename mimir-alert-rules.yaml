@@ -1,0 +1,12 @@
+groups:
+  - name: mimir-critical
+    rules:
+      - alert: MimirIngesterUnhealthy
+        expr: |
+          min by (cluster, namespace) (cortex_ring_members{state="Unhealthy", name="ingester"}) > 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: Mimir cluster has unhealthy ingesters alert
+          description: "Mimir cluster has unhealthy ingesters \n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
