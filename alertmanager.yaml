@@ -1,0 +1,28 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  group_by: ["alertname", "cluster", "region"]
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: high-priority
+  routes:
+    - receiver: "low-priority"
+      matchers:
+        - severity="warning"
+    - receiver: "high-priority"
+      matchers:
+        - severity="critical"
+
+receivers:
+  - name: "high-priority"
+    webhook_configs:
+      # high priority alert source url
+      - url: "https://api.ilert.com/api/v1/events/prometheus/il1prom123"
+        send_resolved: true
+  - name: "low-priority"
+    webhook_configs:
+      # low priority alert source url
+      - url: "https://api.ilert.com/api/v1/events/prometheus/il1prom123"
+        send_resolved: true

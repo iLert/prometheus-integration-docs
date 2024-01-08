@@ -1,0 +1,85 @@
+version: "3.8"
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+
+networks:
+  prometheus-integration: {}
+
+services:
+  alertmanager:
+    container_name: alertmanager
+    hostname: alertmanager
+    image: prom/alertmanager:v0.26.0
+    volumes:
+      - ./alertmanager.yaml:/etc/alertmanager/alertmanager.yaml
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yaml"
+    ports:
+      - 9093:9093
+    networks:
+      - prometheus-integration
+
+  prometheus:
+    container_name: prometheus
+    hostname: prometheus
+    restart: always
+    image: prom/prometheus:v2.45.2
+    volumes:
+      - ./prometheus-config.yaml:/etc/prometheus/prometheus.yaml
+      - ./prometheus-alert-rules.yaml:/etc/prometheus/alert-rules.yaml
+      - prometheus_data:/prometheus
+    command:
+      - "--web.enable-lifecycle"
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+    links:
+      - alertmanager
+      - node-exporter
+    ports:
+      - 9090:9090
+    networks:
+      - prometheus-integration
+
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    ports:
+      - 9100:9100
+    networks:
+      - prometheus-integration
+
+  grafana:
+    container_name: grafana
+    hostname: grafana
+    restart: always
+    image: grafana/grafana:10.0.10
+    depends_on:
+      - prometheus
+    links:
+      - prometheus
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./grafana-dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./prometheus-dashboard.json:/var/lib/grafana/dashboards/prometheus/overview.json
+      - ./node-exporter-dashboard.json:/var/lib/grafana/dashboards/node-explorer/overview.json
+      - ./grafana-config.ini:/etc/grafana/config.ini
+      - grafana_data:/var/lib/grafana
+    ports:
+      - 3000:3000
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    networks:
+      - prometheus-integration
