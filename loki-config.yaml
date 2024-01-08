@@ -1,0 +1,46 @@
+auth_enabled: true
+analytics:
+  reporting_enabled: false
+
+server:
+  http_listen_port: 3100
+
+common:
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+
+ruler:
+  alertmanager_url: http://alertmanager:9093
+  enable_api: true
+  enable_alertmanager_v2: true
+  rule_path: /loki/ruler
+  wal:
+    dir: /loki/ruler-wal
+  ring:
+    kvstore:
+      store: inmemory
+  storage:
+    type: local
+    local:
+      directory: /etc/alertmanager
+  remote_write:
+    enabled: true
+    client:
+      url: http://prometheus:9090/api/v1/write

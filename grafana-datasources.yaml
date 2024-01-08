@@ -1,12 +1,43 @@
 apiVersion: 1
 
 datasources:
-  - name: "prometheus"
-    type: "prometheus"
+  - name: prometheus
+    type: prometheus
     uid: prometheus
+    url: http://prometheus:9090
+    access: proxy
     orgId: 1
     version: 1
+    basicAuth: false
     isDefault: true
     editable: false
-    access: "proxy"
-    url: "http://prometheus:9090"
+
+  - name: loki
+    type: loki
+    uid: loki
+    url: http://loki:3100
+    access: proxy
+    basicAuth: false
+    orgId: 1
+    version: 1
+    isDefault: false
+    editable: false
+    jsonData:
+      maxLines: 1000
+      timeout: 600
+      httpHeaderName1: "X-Scope-OrgID"
+    secureJsonData:
+      httpHeaderValue1: "fake"
+
+  - name: Alertmanager
+    uid: alertmanager
+    type: alertmanager
+    url: http://alertmanager:9093
+    access: proxy
+    basicAuth: false
+    orgId: 1
+    version: 1
+    isDefault: false
+    editable: false
+    jsonData:
+      implementation: prometheus

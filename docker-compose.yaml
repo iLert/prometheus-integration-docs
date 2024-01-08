@@ -66,20 +66,52 @@ services:
     image: grafana/grafana:10.0.10
     depends_on:
       - prometheus
+      - loki
     links:
       - prometheus
+      - loki
     volumes:
       - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
       - ./grafana-dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
       - ./prometheus-dashboard.json:/var/lib/grafana/dashboards/prometheus/overview.json
-      - ./node-exporter-dashboard.json:/var/lib/grafana/dashboards/node-explorer/overview.json
+      - ./node-exporter-dashboard.json:/var/lib/grafana/dashboards/node-exporter/overview.json
+      - ./loki-dashboard.json:/var/lib/grafana/dashboards/loki/overview.json
       - ./grafana-config.ini:/etc/grafana/config.ini
       - grafana_data:/var/lib/grafana
     ports:
       - 3000:3000
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
-      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    networks:
+      - prometheus-integration
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    hostname: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/config.yaml
+      - ./loki-alert-rules.yaml:/etc/alertmanager/fake/rules.yaml
+    depends_on:
+      - prometheus
+    networks:
+      - prometheus-integration
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    hostname: promtail
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yaml
+    depends_on:
+      - loki
     networks:
       - prometheus-integration

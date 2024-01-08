@@ -11,14 +11,25 @@ providers:
     options:
       path: /var/lib/grafana/dashboards/prometheus
       foldersFromFilesStructure: false
-  - name: "Node explorer"
+  - name: "Node exporter"
     orgId: 1
-    folder: "node-explorer"
-    folderUid: "node-explorer-folder"
+    folder: "node-exporter"
+    folderUid: "node-exporter-folder"
     type: file
     disableDeletion: false
     updateIntervalSeconds: 600
     allowUiUpdates: false
     options:
-      path: /var/lib/grafana/dashboards/node-explorer
+      path: /var/lib/grafana/dashboards/node-exporter
+      foldersFromFilesStructure: false
+  - name: "Loki"
+    orgId: 1
+    folder: "loki"
+    folderUid: "loki-folder"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 600
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards/loki
       foldersFromFilesStructure: false
